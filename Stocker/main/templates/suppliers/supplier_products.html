@@ -11,7 +11,7 @@
  {% include 'navbar.html' %}
 
     <main class=" mx-auto px-4 py-7">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Products</h2>
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Supplier Products</h2>
 
         {% if messages %}
 {% for message in messages %}
@@ -24,7 +24,7 @@
 {% endif %}
 <div class="bg-white rounded-4xl p-6 ">
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-        <form method="get" action="{% url 'main:products_view' %}" >
+        <form method="get" action="{% url 'main:supplier_products_view' supplier.id %}" >
 
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -75,8 +75,7 @@
                         <div class="font-bold text-blue-600">${{product.price}}</div>
                     </td>
                     <td class="py-4 pl-4">
-                        <div class="font-medium text-gray-900">{{product.stock}}  <a href="{% url 'main:update_product_stock' product.id %}"><i class="fa fa-edit text-blue-400"></i></a></div>
-                       
+                        <div class="font-medium text-gray-900">{{product.stock}}</div>
                     </td>
                     <td class="py-4 pl-4">
                         {% if product.stock >= 10 %}
@@ -101,7 +100,7 @@
                         <a href="#" class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">{{product.Category.title}}</a>
                     </td>
                     <td class="py-4 pl-4">
-                        <div class="font-medium text-gray-900"><a href="{% url 'main:product_suppliers_view' product.id %}" class="bg-blue-200/50 text-blue-400 px-3 py-2 rounded-full">{{ product.suppliers.count }}</a></div>
+                        <div class="font-medium text-gray-900"><a href="#" class="bg-blue-200/50 text-blue-400 px-3 py-2 rounded-full">{{ product.suppliers.count }}</a></div>
                     </td>
                     <td class="py-4 pl-4">
 

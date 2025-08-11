@@ -485,3 +485,79 @@ def add_user(request:HttpRequest):
         "form": form,
         "groups": groups
     })
+
+
+
+
+
+def supplier_products_view(request:HttpRequest,id:int):
+    if not request.user.is_authenticated:
+        messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
+        return redirect('main:login_view')
+    
+    supplier = models.Supplier.objects.get(pk=id)
+
+    if "search" in request.GET:
+        products = supplier.product_set.filter(title__contains=request.GET["search"])
+    else:
+        products = supplier.product_set.all()
+
+    today = localtime().date()
+
+    for product in products:
+        product.days_to_expire = (product.expire_date - today).days
+        
+        
+    paginator = Paginator(products, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "suppliers/supplier_products.html",{
+        "products": page_obj,
+        "supplier":supplier
+    })
+
+
+
+def product_suppliers_view(request:HttpRequest, id:int):
+    if not request.user.is_authenticated:
+        messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
+        return redirect('main:login_view')
+    
+
+    product = models.Product.objects.get(pk=id)
+    if "searchsupplier" in request.GET:
+        suppliers = product.suppliers.filter(name__contains=request.GET["searchsupplier"])
+    else:
+        suppliers = product.suppliers.all()
+
+    paginator = Paginator(suppliers, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "suppliers/home.html",{
+        "suppliers": page_obj
+    })
+
+
+def update_product_stock(request:HttpRequest, id:int):
+    if not request.user.is_authenticated:
+        messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
+        return redirect('main:login_view')
+    
+    product = models.Product.objects.get(pk=id)
+    if not product:
+        messages.warning(request,"sorry ! the enetred product not exists", "bg-red-300")
+        return redirect('main:home_view')
+
+    
+    if request.method == "POST":
+            product.stock=request.POST['stock']
+            product.save()
+            messages.success(request,"Product stock updated sucessfully !", 'bg-green-500')
+            return redirect("main:products_view")
+     
+
+    return render(request, "products/update_stock.html", {
+        "product":product,
+    })

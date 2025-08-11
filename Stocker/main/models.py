@@ -5,7 +5,9 @@ from django.db import models
 class Category(models.Model):
     title= models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    def __str__(self):
+        return self.title
+            
 
 
 
@@ -16,7 +18,9 @@ class Supplier(models.Model):
     website = models.URLField()
     phone = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    def __str__(self):
+        return self.name
+            
 
 
 class Product(models.Model):
@@ -35,4 +39,6 @@ class Product(models.Model):
             ('update_stock', 'Can update stock'),
         ]
 
+    def __str__(self):
+        return self.title
             

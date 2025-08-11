@@ -1,4 +1,31 @@
 # Stocker
+## UML link.
+![UML](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/UML.png)
+
+
+
+## wireframes.
+
+###Reports
+![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/reports_wireframe.png)
+
+###Products
+![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/products_wireframe.png)
+
+###Categories
+![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/categories_wireframe.png)
+
+###Suppliers
+![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/suppliers_wireframe.png)
+
+###Users
+![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/users_wireframe.png)
+
+
+
+
+
+
 
 ## Using Django create a website for managing corporate inventory !
 The project name is `Iventory Plus` . A comprehensive system to manage inventory and stock of a corporate.

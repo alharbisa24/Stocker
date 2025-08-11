@@ -6,19 +6,19 @@
 
 ## wireframes.
 
-###Reports
+### Reports
 ![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/reports_wireframe.png)
 
-###Products
+### Products
 ![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/products_wireframe.png)
 
-###Categories
+### Categories
 ![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/categories_wireframe.png)
 
-###Suppliers
+### Suppliers
 ![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/suppliers_wireframe.png)
 
-###Users
+### Users
 ![Reports](https://raw.githubusercontent.com/alharbisa24/Stocker/main/images/users_wireframe.png)
 
 

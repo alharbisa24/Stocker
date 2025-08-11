@@ -12,7 +12,7 @@ from django.utils.timezone import localtime
 import os
 from django.contrib.auth.models import Group
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 import csv
 from django.http import HttpResponse
 
@@ -777,3 +777,61 @@ def export_products(request:HttpRequest):
         ])
     
     return response
+
+def import_csv(request:HttpRequest):
+    if not request.user.is_authenticated:
+        messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
+        return redirect('main:login_view')
+    
+    if not request.user.has_perm('main.add_product'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')
+    
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        csv_file = request.FILES['csv_file']
+        
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "This file is not a CSV file", "bg-red-500")
+            return redirect('main:import_csv')
+        
+        try:
+            file_data = csv_file.read().decode('utf-8')
+            csv_data = csv.reader(file_data.splitlines())
+            
+            next(csv_data, None)
+            
+            products_added = 0
+            for row in csv_data:
+                if len(row) >= 6: 
+                    title = row[1]
+                    description = row[2]
+                    price = float(row[3])
+                    stock = int(row[4])
+                    expire_date = row[5]
+                    category_name = row[6]
+
+                    expire_date = datetime.strptime(row[5], "%Y-%m-%d").date()
+                
+                    category = models.Category.objects.filter(title=category_name).first()
+                    if not category:
+                        category = models.Category(title=category_name)
+                        category.save()
+
+                    product = models.Product(
+                        title=title,
+                        description=description,
+                        price=price,
+                        stock=stock,
+                        expire_date=expire_date,
+                        Category=category
+                    )
+                    product.save()
+                    products_added += 1
+                    
+            messages.success(request, f"{products_added} products imported successfully!", "bg-green-500")
+            return redirect('main:products_view')
+            
+        except Exception as e:
+            messages.error(request, f"Error importing CSV: {str(e)}", "bg-red-500")
+    
+    return render(request, "import_csv.html")

@@ -13,6 +13,8 @@ import os
 from django.contrib.auth.models import Group
 from django.utils import timezone
 from datetime import timedelta
+import csv
+from django.http import HttpResponse
 
 
 def login_view(request:HttpRequest):
@@ -738,3 +740,40 @@ def update_product_stock(request:HttpRequest, id:int):
 def logout_view(request:HttpRequest):
     logout(request)
     return redirect('main:login_view')
+
+
+def export_products(request:HttpRequest):
+    
+    if not request.user.is_authenticated:
+        messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
+        return redirect('main:login_view')
+    
+    if not request.user.has_perm('main.view_product'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')
+    
+    response = HttpResponse(
+        content_type='text/csv',
+        headers={'Content-Disposition': 'attachment; filename="products.csv"'},
+    )
+    
+    writer = csv.writer(response)
+    
+    writer.writerow(['ID', 'Title', 'Description', 'Price', 'Stock', 'Expire Date', 'Category', '#Suppliers'])
+    
+    products = models.Product.objects.all()
+    
+    for product in products:
+        suppliers = product.suppliers.count()
+        writer.writerow([
+            product.id,
+            product.title,
+            product.description,
+            product.price,
+            product.stock,
+            product.expire_date.strftime('%Y-%m-%d'),
+            product.Category.title,
+            suppliers
+        ])
+    
+    return response

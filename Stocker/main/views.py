@@ -3,14 +3,17 @@ from django.shortcuts import render,redirect
 from django.http import HttpRequest
 from . import forms,models
 from django.contrib.auth import authenticate,login,logout
-from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q,Count
+from django.db.models import Q,Count, Avg
+from django.core.mail import EmailMessage
 from django.utils.timezone import localtime
 import os
 from django.contrib.auth.models import Group
+from django.utils import timezone
+from datetime import timedelta
+
 
 def login_view(request:HttpRequest):
 
@@ -23,6 +26,44 @@ def login_view(request:HttpRequest):
  
                 user = authenticate(request, username=username, password=password)
                 if user:
+                    #Check products that reach expire date soon
+                    managers = User.objects.filter(is_superuser=True).all()
+
+                    products_expiring_soon = models.Product.objects.filter(
+                        expire_date__lte=timezone.now().date() + timedelta(days=10),
+                        expire_date__gte=timezone.now().date()
+                    )
+
+                    for product in products_expiring_soon:
+                        days_until_expiry = (product.expire_date - timezone.now().date()).days
+                        try:
+                            content = f"""
+                            <html>
+                            <body>
+                                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                                    <h2 style="color: #d9534f;">⚠️ Product Expiry Alert</h2>
+                                    <div style="background-color: #f9f9f9; padding: 15px; margin: 15px 0; border-left: 4px solid #d9534f;">
+                                        <p><strong>Product:</strong> {product.title}</p>
+                                        <p><strong>Expiry Date:</strong> {product.expire_date.strftime('%Y-%m-%d')}</p>
+                                        <p><strong>Days Remaining:</strong> {days_until_expiry} days</p>
+                                        <p><strong>Status:</strong> {"Expired" if days_until_expiry <= 0 else "Expiring soon"}</p>
+                                    </div>
+                                </div>
+                            </body>
+                            </html>
+                            """
+                            for manager in managers:
+                                if manager.email:
+                                    email = EmailMessage(
+                                        "Product Expiry Alert",
+                                        content,
+                                        settings.DEFAULT_FROM_EMAIL,
+                                        [manager.email],
+                                    )
+                                    email.content_subtype = "html"
+                                    email.send()
+                        except Exception as e:
+                            print(e)
                     login(request, user)
                     return redirect("main:home_view")
                 else: 
@@ -40,8 +81,24 @@ def home_view(request:HttpRequest):
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
 
+    avg_products_per_supplier = models.Supplier.objects.annotate(
+        product_count=Count('product')
+        ).aggregate(
+            Avg('product_count')
+            )['product_count__avg']
+    last_30_days = timezone.localtime() - timedelta(days=30)
+    new_suppliers_count = models.Supplier.objects.filter(created_at__gte=last_30_days).count()
+
     data = {
         "total_products": models.Product.objects.count(),
+        "total_products_in_stock": models.Product.objects.filter(Q(stock__gt=100)).count(),
+        "total_products_low_stock": models.Product.objects.filter(Q(stock__lt=100)).count(),
+        "total_products_out_of_stock": models.Product.objects.filter(Q(stock=0)).count(),
+        "products_average_prices": models.Product.objects.aggregate(Avg('price'))['price__avg'],
+        "average_product_for_supplier":avg_products_per_supplier,
+        "new_suppliers_count":new_suppliers_count,
+        "suppliers_with_products": models.Supplier.objects.annotate(products_count=Count('product')).filter(products_count__gt=0).count(),
+        "suppliers_without_products": models.Supplier.objects.annotate(products_count=Count('product')).filter(products_count=0).count(),
         "total_categories":models.Category.objects.count(),
         "total_suppliers":models.Supplier.objects.count(),
         "total_users":User.objects.filter(is_superuser=False).count()
@@ -60,7 +117,10 @@ def products_view(request:HttpRequest):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
-    
+
+    if not request.user.has_perm('main.view_product'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
 
     if "search" in request.GET:
         products = models.Product.objects.filter(title__contains=request.GET["search"])
@@ -89,6 +149,10 @@ def add_product(request:HttpRequest):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+
+    if not request.user.has_perm('main.add_product'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
     
     if request.method == "POST":
         form = forms.ProductForm(request.POST, request.FILES)
@@ -101,7 +165,6 @@ def add_product(request:HttpRequest):
                 description=request.POST['description'],
                 image=image,
                 price=request.POST['price'],
-                stock=request.POST['stock'],
                 expire_date=request.POST['expire_date'],
                 Category=category,
             )
@@ -132,6 +195,10 @@ def edit_product(request:HttpRequest, id:int):
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
     
+    if not request.user.has_perm('main.edit_product'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
+    
     product = models.Product.objects.get(pk=id)
     if not product:
         messages.warning(request,"sorry ! the enetred product not exists", "bg-red-300")
@@ -145,7 +212,6 @@ def edit_product(request:HttpRequest, id:int):
             product.title = request.POST['title']
             product.description=request.POST['description']
             product.price=request.POST['price']
-            product.stock=request.POST['stock']
             product.expire_date=request.POST['expire_date']
             product.Category=category
             if request.FILES.get('image'):
@@ -176,6 +242,14 @@ def edit_product(request:HttpRequest, id:int):
     })
 
 def delete_product(request:HttpRequest, id:int):
+    if not request.user.is_authenticated:
+        messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
+        return redirect('main:login_view')
+    
+    if not request.user.has_perm('main.delete_product'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
+    
     product = models.Product.objects.get(pk=id)
 
     if product:
@@ -193,6 +267,10 @@ def categories_view(request:HttpRequest):
         return redirect('main:login_view')
     
 
+    if not request.user.has_perm('main.view_category'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
+    
     if "searchcategory" in request.GET:
         categories = models.Category.objects.filter(title__contains=request.GET["searchcategory"])
     else:
@@ -211,6 +289,10 @@ def add_category(request:HttpRequest):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+    
+    if not request.user.has_perm('main.add_category'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
     
     if request.method == "POST":
         form = forms.CategoryForm(request.POST)
@@ -237,6 +319,10 @@ def edit_category(request:HttpRequest, id:int):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+    
+    if not request.user.has_perm('main.change_category'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
     
     category = models.Category.objects.get(pk=id)
     if not category:
@@ -266,6 +352,14 @@ def edit_category(request:HttpRequest, id:int):
     })
 
 def delete_category(request:HttpRequest, id:int):
+    if not request.user.is_authenticated:
+        messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
+        return redirect('main:login_view')
+    
+    if not request.user.has_perm('main.delete_category'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
+    
     category = models.Category.objects.get(pk=id)
 
     if category:
@@ -279,7 +373,10 @@ def suppliers_view(request:HttpRequest):
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
     
-
+    if not request.user.has_perm('main.view_supplier'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')       
+    
     if "searchsupplier" in request.GET:
         suppliers = models.Supplier.objects.filter(name__contains=request.GET["searchsupplier"])
     else:
@@ -298,6 +395,10 @@ def add_supplier(request:HttpRequest):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+    
+    if not request.user.has_perm('main.add_supplier'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
     
     if request.method == "POST":
         form = forms.SupplierForm(request.POST, request.FILES)
@@ -329,9 +430,14 @@ def add_supplier(request:HttpRequest):
 
 
 def edit_supplier(request:HttpRequest, id:int):
+    print(request.user.get_all_permissions())
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+    
+    if not request.user.has_perm('main.change_supplier'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
     
     supplier = models.Supplier.objects.get(pk=id)
     if not supplier:
@@ -371,6 +477,9 @@ def edit_supplier(request:HttpRequest, id:int):
 
 def delete_supplier(request:HttpRequest, id:int):
     supplier = models.Supplier.objects.get(pk=id)
+    if not request.user.has_perm('main.delete_supplier'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
 
     if supplier:
         image_path = os.path.join(settings.MEDIA_ROOT, supplier.logo.name)
@@ -386,11 +495,14 @@ def users_view(request:HttpRequest):
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
 
-
-    if "searchuser" in request.GET:
-        users = User.objects.filter(Q(first_name__contains=request.GET["searchuser"]) and Q(is_superuser=False))
+    if request.user.has_perm('auth.view_user'):
+        if "searchuser" in request.GET:
+            users = User.objects.filter(Q(first_name__contains=request.GET["searchuser"]) and Q(is_superuser=False))
+        else:
+            users = User.objects.filter(is_superuser=False)
     else:
-        users = User.objects.filter(is_superuser=False)
+        users = []
+        messages.error(request,'Sorry ! you cannot access to this page !', 'bg-red-400')
 
     paginator = Paginator(users, 10) 
     page_number = request.GET.get('page')
@@ -405,6 +517,10 @@ def edit_user(request:HttpRequest, id:int):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+    
+    if not request.user.has_perm('auth.change_user'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')       
     
     user = User.objects.get(pk=id)
     if not user:
@@ -438,6 +554,10 @@ def edit_user(request:HttpRequest, id:int):
     })
 
 def delete_user(request:HttpRequest, id:int):
+    if not request.user.has_perm('auth.delete_user'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')    
+       
     user = User.objects.get(pk=id)
 
     if user:
@@ -452,6 +572,10 @@ def add_user(request:HttpRequest):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+    
+    if not request.user.has_perm('auth.add_user'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')       
     
     if request.method == "POST":
         print(request.POST)
@@ -495,6 +619,10 @@ def supplier_products_view(request:HttpRequest,id:int):
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
     
+    if not request.user.has_perm('main.view_product'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')       
+    
     supplier = models.Supplier.objects.get(pk=id)
 
     if "search" in request.GET:
@@ -523,6 +651,11 @@ def product_suppliers_view(request:HttpRequest, id:int):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+
+    if not request.user.has_perm('main.view_supplier'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')       
+    
     
 
     product = models.Product.objects.get(pk=id)
@@ -544,6 +677,10 @@ def update_product_stock(request:HttpRequest, id:int):
     if not request.user.is_authenticated:
         messages.warning(request,"sorry ! you must be logged in to access page", "bg-orange-300")
         return redirect('main:login_view')
+
+    if not request.user.has_perm('main.update_stock'):
+        messages.warning(request,"sorry ! you cannot access to previous page", "bg-orange-300")
+        return redirect('main:home_view')     
     
     product = models.Product.objects.get(pk=id)
     if not product:
@@ -554,6 +691,41 @@ def update_product_stock(request:HttpRequest, id:int):
     if request.method == "POST":
             product.stock=request.POST['stock']
             product.save()
+
+            # check stock to send email
+            managers = User.objects.filter(is_superuser=True).all()
+            if int(product.stock) <= 100:
+                try:
+                    content = f"""
+                    <html>
+                    <body>
+                        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                            <h2 style="color: #d9534f;">⚠️ Low Stock Alert</h2>
+                            <div style="background-color: #f9f9f9; padding: 15px; margin: 15px 0; border-left: 4px solid #d9534f;">
+                                <p><strong>Product:</strong> {product.title}</p>
+                                <p><strong>Current Stock:</strong> {product.stock} units</p>
+                                <p><strong>Date:</strong> {product.created_at.strftime('%Y-%m-%d')}</p>
+                                <p><strong>Status:</strong> reach minimum Stock (100 units)</p>
+                            </div>
+                            <p>Thank you
+                        </div>
+                    </body>
+                    </html>
+                    """
+                    for manager in managers:
+                        if manager.email:
+                            email = EmailMessage(
+                            "Low Stock Alert",
+                                content,
+                                settings.DEFAULT_FROM_EMAIL,
+                                [manager.email],
+                            )
+                            email.content_subtype = "html"
+                            email.send()
+                except Exception as e:
+                    print(e)
+
+
             messages.success(request,"Product stock updated sucessfully !", 'bg-green-500')
             return redirect("main:products_view")
      
@@ -561,3 +733,8 @@ def update_product_stock(request:HttpRequest, id:int):
     return render(request, "products/update_stock.html", {
         "product":product,
     })
+
+
+def logout_view(request:HttpRequest):
+    logout(request)
+    return redirect('main:login_view')

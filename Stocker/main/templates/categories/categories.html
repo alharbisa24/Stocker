@@ -34,10 +34,13 @@
             </div>
             </form>
         
+            {% if perms.main.add_category  %}
+
         <a href="{% url 'main:add_category' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center transition-colors">
             <span class="material-symbols-outlined mr-1">add</span>
             Add Category
         </a>
+        {% endif %}
     </div>
 
     <div class="overflow-x-auto">
@@ -46,7 +49,10 @@
                 <tr class="text-left text-sm text-gray-500 border-b">
                     <th class="pb-3 pl-4 font-medium">Title</th>
                     <th class="pb-3 pl-4 font-medium">number of products</th>
+                    {% if perms.main.change_category or perms.main.delete_category  %}
+
                     <th class="pb-3 pl-4 font-medium">Actions</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -62,16 +68,25 @@
                         <div class="font-medium text-gray-900">{{category.product_category.count}}</div>
                     </td>
                 
+                    {% if perms.main.change_category or perms.main.delete_category  %}
+
                     <td class="py-4 pl-4">
                         <div class="flex space-x-1">
+                            {% if perms.main.change_category  %}
+
                             <a  href="{% url 'main:edit_category' category.id %}" class="p-2 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
                                 <span class="material-symbols-outlined text-sm">edit</span>
                             </a>
+                            {% endif %}
+                            {% if perms.main.delete_category  %}
+
                             <a  href="#" onclick="confirmDelete(event, '{% url 'main:delete_category' category.id %}')" class="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors">
                                 <span class="material-symbols-outlined text-sm">delete</span>
                             </a>
+                            {% endif %}
                         </div>
                     </td>
+                    {% endif %}
                 </tr>
 
                 {% endfor %}

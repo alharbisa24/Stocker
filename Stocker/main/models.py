@@ -10,9 +10,9 @@ class Category(models.Model):
 
 
 class Supplier(models.Model):
-    name=models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
     logo = models.ImageField(upload_to="logos/",default='logos/default.jpg')
-    email= models.CharField(max_length=100)
+    email = models.CharField(max_length=100)
     website = models.URLField()
     phone = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -31,10 +31,8 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         permissions = [
-            ('can_view_stock','can view stock'),
-            ('can_update_stock','can_update_stock'),
-            
+            ('view_stock', 'Can view stock'),
+            ('update_stock', 'Can update stock'),
         ]
 
-
-    
+            

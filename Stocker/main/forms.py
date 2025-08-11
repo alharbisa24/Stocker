@@ -34,13 +34,7 @@ class SupplierForm(forms.Form):
     phone = forms.CharField(error_messages= {
         'required':"phone is required"
     })
-    products = forms.ModelMultipleChoiceField(
-        queryset=models.Product.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        error_messages= {
-        'required':"products is required"
-    }
-    )
+   
 
 class ProductForm(forms.Form):
     title = forms.CharField(max_length=100, error_messages= {
@@ -52,9 +46,6 @@ class ProductForm(forms.Form):
     })
     price = forms.CharField(max_length=100, error_messages= {
         'required':"price is required"
-    })
-    stock = forms.CharField(max_length=100, error_messages= {
-        'required':"stock is required"
     })
     expire_date = forms.DateField(error_messages={
         'required':"expire date is required"

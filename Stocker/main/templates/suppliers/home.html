@@ -34,12 +34,15 @@
             </div>
             </form>
         
+            {% if perms.main.add_supplier  %}
+
         <a href="{% url 'main:add_supplier' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center transition-colors">
             <span class="material-symbols-outlined mr-1">add</span>
             Add Supplier
         </a>
+        {% endif %}
     </div>
-
+ 
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead>
@@ -50,7 +53,10 @@
                     <th class="pb-3 pl-4 font-medium">Phone</th>
                     <th class="pb-3 pl-4 font-medium">Website</th>
                     <th class="pb-3 pl-4 font-medium">#products</th>
+                    {% if perms.main.change_supplier or perms.main.delete_supplier  %}
+
                     <th class="pb-3 pl-4 font-medium">Actions</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -80,16 +86,25 @@
                         <div class="font-medium text-gray-900"><a href="{% url 'main:supplier_products_view' supplier.id %}" class="bg-blue-200/50 text-blue-400 px-3 py-2 rounded-full">{{supplier.product_set.count}}</a></div>
                     </td>
                 
+                    {% if perms.main.change_supplier or perms.main.delete_supplier  %}
+
                     <td class="py-4 pl-4">
                         <div class="flex space-x-1">
+                            {% if perms.main.change_supplier  %}
+
                             <a  href="{% url 'main:edit_supplier' supplier.id %}" class="p-2 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
                                 <span class="material-symbols-outlined text-sm">edit</span>
                             </a>
+                            {% endif %}
+                            {% if perms.main.change_supplier %}
+
                             <a  href="#" onclick="confirmDelete(event, '{% url 'main:delete_supplier' supplier.id %}')" class="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors">
                                 <span class="material-symbols-outlined text-sm">delete</span>
                             </a>
+                            {% endif  %}
                         </div>
                     </td>
+                    {% endif %}
                 </tr>
 
                 {% endfor %}

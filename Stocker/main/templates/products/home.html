@@ -34,10 +34,14 @@
             </div>
             </form>
         
+            {% if perms.main.add_product  %}
+
         <a href="{% url 'main:add_product' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center transition-colors">
             <span class="material-symbols-outlined mr-1">add</span>
             Add Product
         </a>
+        {% endif %}
+
     </div>
 
     <div class="overflow-x-auto">
@@ -48,12 +52,17 @@
                     <th class="pb-3 pl-4 font-medium">Title</th>
                     <th class="pb-3 pl-4 font-medium">Description</th>
                     <th class="pb-3 pl-4 font-medium">Price</th>
+                    {% if perms.main.update_stock or perms.main.view_stock  %}
                     <th class="pb-3 pl-4 font-medium">Stock</th>
+                    {% endif %}
                     <th class="pb-3 pl-4 font-medium">status</th>
                     <th class="pb-3 pl-4 font-medium">Category</th>
                     <th class="pb-3 pl-4 font-medium">#Suppliers</th>
                     <th class="pb-3 pl-4 font-medium">expires</th>
+                    {% if perms.main.change_product or perms.main.delete_product  %}
+
                     <th class="pb-3 pl-4 font-medium">Actions</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -74,18 +83,34 @@
                     <td class="py-4 pl-4">
                         <div class="font-bold text-blue-600">${{product.price}}</div>
                     </td>
+                    {% if perms.main.update_stock or perms.main.view_stock  %}
+
                     <td class="py-4 pl-4">
-                        <div class="font-medium text-gray-900">{{product.stock}}  <a href="{% url 'main:update_product_stock' product.id %}"><i class="fa fa-edit text-blue-400"></i></a></div>
+
+                        <div class="font-medium text-gray-900">
+                            {% if perms.main.view_stock  %}
+
+                            {{product.stock}}  
+                            {% endif %}
+
+                            {% if perms.main.update_stock  %}
+
+                            <a href="{% url 'main:update_product_stock' product.id %}"><i class="fa fa-edit text-blue-400"></i></a>
+                        {% endif %}
+                        </div>
                        
                     </td>
+                    {% endif %}
                     <td class="py-4 pl-4">
-                        {% if product.stock >= 10 %}
+                        {% if perms.main.view_stock  %}
+                        {% if product.stock >= 100 %}
                         <div class="bg-blue-200/50 text-blue-500 text-sm py-1 text-center rounded-full">Available</div>
-                        {% elif product.stock < 10 %}
-                        <div class="bg-orange-200/50 text-orange-500 text-sm py-1 text-center rounded-full">Finished soon</div>
+                        {% elif product.stock < 100 %}
+                        <div class="bg-orange-200/50 text-orange-500 text-sm py-1 text-center rounded-full">Low stock</div>
                         {% elif product.stock == 0 %}
                         <div class="bg-red-200/50 text-red-500 text-sm py-1 text-center rounded-full">Out of stock</div>
                        {% endif  %}
+                       {% endif %}
 
                  
                        {% if product.days_to_expire <= 10 %}
@@ -110,17 +135,24 @@
                     </td>
        
               
+                    {% if perms.main.change_product or perms.main.delete_product  %}
+
                 
                     <td class="py-4 pl-4">
                         <div class="flex space-x-1">
+                            {% if perms.main.change_product %}
                             <a  href="{% url 'main:edit_product' product.id %}" class="p-2 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
                                 <span class="material-symbols-outlined text-sm">edit</span>
                             </a>
+                            {% endif %}
+                            {% if perms.main.delete_product %}
                             <a  href="#" onclick="confirmDelete(event, '{% url 'main:delete_product' product.id %}')" class="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors">
                                 <span class="material-symbols-outlined text-sm">delete</span>
                             </a>
+                            {% endif %}
                         </div>
                     </td>
+                    {% endif %}
                 </tr>
 
                 {% endfor %}

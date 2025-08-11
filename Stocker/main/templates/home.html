@@ -17,52 +17,75 @@
 
     </style>
     <main class=" mx-auto px-4 py-7">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="{% if message.tags %} {{ message.tags }} {% endif %} p-4 rounded-md mb-4 text-white">
+          {{ message }}  
+        </div>
+        
+        {% endfor %}
+        
+        {% endif %}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             <div class="lg:col-span-2 space-y-8">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                    <div class="bg-white rounded-4xl p-6 border border-gray-100">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-gray-500 font-medium">Total Products</h3>
-                            <div class="p-2 bg-gray-100 rounded-xl">
-                                <span class="material-symbols-outlined text-gray-700">inventory_2</span>
-                            </div>
+                <section class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Inventory Reports</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Total Products</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.total_products }}</div>
                         </div>
-                        <p class="text-3xl font-bold text-gray-800">{{data.total_products}}</p>
-                    </div>
-                    
-                    <div class="bg-white rounded-4xl  p-6 border border-gray-100">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-gray-500 font-medium">Categories</h3>
-                            <div class="p-2 bg-gray-100 rounded-xl">
-                                <span class="material-symbols-outlined text-gray-700">layers</span>
-                            </div>
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">In Stock</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.total_products_in_stock }}</div>
                         </div>
-                        <p class="text-3xl font-bold text-gray-800">{{data.total_categories}}</p>
-                    
-                    </div>
-                    
-                    <div class="bg-white rounded-4xl  p-6 border border-gray-100">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-gray-500 font-medium">Suppliers</h3>
-                            <div class="p-2 bg-gray-100 rounded-xl">
-                                <span class="material-symbols-outlined text-gray-700">group</span>
-                            </div>
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Low Stock</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.total_products_low_stock }}</div>
                         </div>
-                        <p class="text-3xl font-bold text-gray-800">{{data.total_suppliers}}</p>
-                    </div>
-                    
-                    <div class="bg-white rounded-4xl  p-6 border border-gray-100">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-gray-500 font-medium">Users</h3>
-                            <div class="p-2 bg-gray-100 rounded-xl">
-                                <span class="material-symbols-outlined text-gray-700">groups</span>
-                            </div>
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Out of Stock</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.total_products_low_stock }}</div>
                         </div>
-                        <p class="text-3xl font-bold text-gray-800">{{data.total_users}}</p>
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Avg. Price ($)</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.products_average_prices }}</div>
+                        </div>
+    
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Categories</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.total_categories }}</div>
+                        </div>
                     </div>
-                </div>
+                </section>
+        
+                <!-- Supplier Reports -->
+                <section>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Supplier Reports</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Total Suppliers</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.total_suppliers }}</div>
+                        </div>
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Average Products for Supplier</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.average_product_for_supplier }}</div>
+                        </div>
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">New Suppliers (in last 30 days)</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.new_suppliers_count }}</div>
+                        </div>
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Suppliers have Products</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.suppliers_with_products }}</div>
+                        </div>
+                        <div class="bg-white rounded-3xl p-6 border border-gray-100">
+                            <div class="text-sm text-gray-500 mb-2">Suppliers without products</div>
+                            <div class="text-4xl font-bold text-gray-900">{{ data.suppliers_without_products }}</div>
+                        </div>
+                    </div>
+                </section>
 
           
                 <h2 class="text-xl font-bold text-gray-900">Products</h2>
@@ -78,13 +101,13 @@
                                 <div class="relative rounded-xl overflow-hidden mb-4">
                                     <img src="{{product.image.url}}" alt="{{product.title}}" class="w-full h-40 object-contain group-hover:scale-105 transition-transform duration-300 rounded-3xl">
                                 </div>
-                                <span class="  {% if product.stock >= 10 %} bg-blue-600/20 text-blue-600  {% elif product.stock < 10 %} bg-orange-600/20 text-orange-600 {% elif product.stock == 0 %} bg-red-600/20 text-red-600 {% endif %} text-black text-xs px-2 py-1 rounded-full">{{product.stock}} remaining</span>
+                                <span class="  {% if product.stock >= 100 %} bg-blue-600/20 text-blue-600  {% elif product.stock < 100 %} bg-orange-600/20 text-orange-600 {% elif product.stock == 0 %} bg-red-600/20 text-red-600 {% endif %} text-black text-xs px-2 py-1 rounded-full">{{product.stock}} remaining</span>
 
-                                <h3 class="font-semibold  {% if product.stock >= 10 %} text-gray-900 group-hover:text-blue-600 {% elif product.stock < 10 %} text-orange-900 group-hover:text-orange-600  {% elif product.stock == 0 %} text-red-900 group-hover:text-red-600  {% endif %} mb-1 transition-colors">Product title</h3>
-                                <div class="{% if product.stock >= 10 %} text-blue-600  {% elif product.stock < 10 %} text-orange-600 {% elif product.stock == 0 %} text-red-600 {% endif %}  font-medium mb-2">${{product.price}}</div>
+                                <h3 class="font-semibold  {% if product.stock >= 10 %} text-gray-900 group-hover:text-blue-600 {% elif product.stock < 100 %} text-orange-900 group-hover:text-orange-600  {% elif product.stock == 0 %} text-red-900 group-hover:text-red-600  {% endif %} mb-1 transition-colors">Product title</h3>
+                                <div class="{% if product.stock >= 100 %} text-blue-600  {% elif product.stock < 100 %} text-orange-600 {% elif product.stock == 0 %} text-red-600 {% endif %}  font-medium mb-2">${{product.price}}</div>
 
                                 <div class="w-full bg-gray-200 rounded-full h-1">
-                                    <div class="{% if product.stock >= 10 %} bg-blue-600  {% elif product.stock < 10 %} bg-orange-600 {% elif product.stock == 0 %} bg-red-600 {% endif %} h-1 rounded-full" style="width: {{product.stock}}%;"></div>
+                                    <div class="{% if product.stock >= 100 %} bg-blue-600  {% elif product.stock < 100 %} bg-orange-600 {% elif product.stock == 0 %} bg-red-600 {% endif %} h-1 rounded-full" style="width: {{product.stock}}%;"></div>
                                 </div>
                             </div>
                           

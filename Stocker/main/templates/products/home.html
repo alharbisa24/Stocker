@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="flex h-screen">
+
+{% include 'sidebar.html' %}
+
+<div class="flex-1 bg-gray-100 p-6 overflow-auto">
+    
+ {% include 'navbar.html' %}
+
+    <main class=" mx-auto px-4 py-7">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Products</h2>
+
+        {% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags %} {{ message.tags }} {% endif %} p-4 rounded-md mb-4 text-white">
+  {{ message }}  
+</div>
+
+{% endfor %}
+
+{% endif %}
+<div class="bg-white rounded-4xl p-6 ">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+        <form method="get" action="{% url 'main:products_view' %}" >
+
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <span class="material-symbols-outlined text-gray-400">search</span>
+                </span>
+                <input type="search" value="{{request.GET.search}}" name="search" placeholder="Search for product..." class="pl-10 pr-20 py-2  border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            </form>
+        
+        <a href="{% url 'main:add_product' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center transition-colors">
+            <span class="material-symbols-outlined mr-1">add</span>
+            Add Product
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="text-left text-sm text-gray-500 border-b">
+                    <th class="pb-3 pl-4 font-medium">Image</th>
+                    <th class="pb-3 pl-4 font-medium">Title</th>
+                    <th class="pb-3 pl-4 font-medium">Description</th>
+                    <th class="pb-3 pl-4 font-medium">Price</th>
+                    <th class="pb-3 pl-4 font-medium">Stock</th>
+                    <th class="pb-3 pl-4 font-medium">status</th>
+                    <th class="pb-3 pl-4 font-medium">Category</th>
+                    <th class="pb-3 pl-4 font-medium">#Suppliers</th>
+                    <th class="pb-3 pl-4 font-medium">expires</th>
+                    <th class="pb-3 pl-4 font-medium">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if products %}
+                {% for product in products %}
+                <tr class="border-b hover:bg-gray-50 transition-colors">
+                    <td class="py-4 pl-4">
+                        <img src="{{product.image.url}}" alt="Product" class="w-16 h-16 rounded-xl object-cover">
+                    </td>
+                    <td class="py-4 pl-4">
+                        <div class="font-semibold text-gray-900">{{product.title}}</div>
+                    </td>
+    
+                    <td class="py-4 pl-4">
+                        <div class="font-medium text-sm text-gray-400 line-clamp-2 max-h-12 overflow-hidden">{{product.description}}</div>
+                    </td>
+                    
+                    <td class="py-4 pl-4">
+                        <div class="font-bold text-blue-600">${{product.price}}</div>
+                    </td>
+                    <td class="py-4 pl-4">
+                        <div class="font-medium text-gray-900">{{product.stock}}</div>
+                    </td>
+                    <td class="py-4 pl-4">
+                        {% if product.stock >= 10 %}
+                        <div class="bg-blue-200/50 text-blue-500 text-sm py-1 text-center rounded-full">Available</div>
+                        {% elif product.stock < 10 %}
+                        <div class="bg-orange-200/50 text-orange-500 text-sm py-1 text-center rounded-full">Finished soon</div>
+                        {% elif product.stock == 0 %}
+                        <div class="bg-red-200/50 text-red-500 text-sm py-1 text-center rounded-full">Out of stock</div>
+                       {% endif  %}
+
+                 
+                       {% if product.days_to_expire <= 10 %}
+                       <div class="mt-1 bg-orange-200/50 text-orange-500 text-sm py-1 text-center rounded-full">Expiring soon</div>
+
+                       {% elif product.days_to_expire <= 0 %}
+                       <div class="mt-1 bg-red-200/50 text-red-500 text-sm py-1 text-center rounded-full">Expired</div>
+
+                       {% endif %}
+                    </td>
+                    
+                    <td class="py-4 pl-4">
+                        <a href="#" class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">{{product.Category.title}}</a>
+                    </td>
+                    <td class="py-4 pl-4">
+                        <div class="font-medium text-gray-900"><a href="#" class="bg-blue-200/50 text-blue-400 px-3 py-2 rounded-full">{{ product.suppliers.count }}</a></div>
+                    </td>
+                    <td class="py-4 pl-4">
+
+                        {{product.expire_date|date:'Y-m-d'}}
+                        
+                    </td>
+       
+              
+                
+                    <td class="py-4 pl-4">
+                        <div class="flex space-x-1">
+                            <a  href="{% url 'main:edit_product' product.id %}" class="p-2 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </a>
+                            <a  href="#" onclick="confirmDelete(event, '{% url 'main:delete_product' product.id %}')" class="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+
+                {% endfor %}
+                {% else %}
+                <tr class="border-b hover:bg-gray-50 transition-colors">
+     
+                    <td class="py-4 pl-4 text-center" colspan="8">
+                        <div class="font-semibold text-gray-900">there is no suppliers</div>
+                    </td>
+               
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex items-center justify-between mt-6">
+  
+       
+ 
+        <div class="flex space-x-1">
+            {% if products.has_previous %}
+            <a href="?page={{ products.previous_page_number }}" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Previous</a>
+            {% else %}
+            <span class="px-3 py-1 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed">Previous</span>
+            {% endif %}
+
+            {% for page_num in products.paginator.page_range %}
+            {% if products.number == page_num %}
+                <span class="px-3 py-1 rounded-lg bg-blue-600 text-white">{{ page_num }}</span>
+            {% else %}
+                <a href="?page={{ page_num }}" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">{{ page_num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if products.has_next %}
+            <a href="?page={{ products.next_page_number }}" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Next</a>
+            {% else %}
+            <span class="px-3 py-1 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed">Next</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+  </main>
+
+  <script>
+    function confirmDelete(event, url) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "you cannot return this item.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'yes,delete',
+            cancelButtonText: 'cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
+</script>
+{% endblock %}

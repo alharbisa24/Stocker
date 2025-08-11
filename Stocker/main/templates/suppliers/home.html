@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="flex h-screen">
+
+{% include 'sidebar.html' %}
+
+<div class="flex-1 bg-gray-100 p-6 overflow-auto">
+    
+ {% include 'navbar.html' %}
+
+    <main class=" mx-auto px-4 py-7">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Suppliers</h2>
+
+        {% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags %} {{ message.tags }} {% endif %} p-4 rounded-md mb-4 text-white">
+  {{ message }}  
+</div>
+
+{% endfor %}
+
+{% endif %}
+<div class="bg-white rounded-4xl p-6 ">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+        <form method="get" action="{% url 'main:suppliers_view' %}" >
+
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <span class="material-symbols-outlined text-gray-400">search</span>
+                </span>
+                <input type="search" value="{{request.GET.search}}" name="searchsupplier" placeholder="Search for supplier..." class="pl-10 pr-20 py-2  border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            </form>
+        
+        <a href="{% url 'main:add_supplier' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center transition-colors">
+            <span class="material-symbols-outlined mr-1">add</span>
+            Add Supplier
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="text-left text-sm text-gray-500 border-b">
+                    <th class="pb-3 pl-4 font-medium">Name</th>
+                    <th class="pb-3 pl-4 font-medium">Logo</th>
+                    <th class="pb-3 pl-4 font-medium">Email</th>
+                    <th class="pb-3 pl-4 font-medium">Phone</th>
+                    <th class="pb-3 pl-4 font-medium">Website</th>
+                    <th class="pb-3 pl-4 font-medium">#products</th>
+                    <th class="pb-3 pl-4 font-medium">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if suppliers %}
+                {% for supplier in suppliers %}
+                <tr class="border-b hover:bg-gray-50 transition-colors">
+     
+                    <td class="py-4 pl-4">
+                        <div class="font-semibold text-gray-900">{{supplier.name}}</div>
+                    </td>
+                    <td class="py-4 pl-4">
+                        <div class="font-semibold text-gray-900"><img src="{{supplier.logo.url}}" width="50"></div>
+                    </td>
+                    <td class="py-4 pl-4">
+                        <div class="font-semibold text-gray-900">{{supplier.email}}</div>
+                    </td>
+                    
+                    <td class="py-4 pl-4">
+                        <div class="font-semibold text-gray-900">{{supplier.phone}}</div>
+                    </td>
+                    
+                    <td class="py-4 pl-4">
+                        <div class="font-semibold text-gray-900"><a href="{{supplier.website}}" style="color: blue;">{{supplier.website}}</a></div>
+                    </td>
+
+                    <td class="py-4 pl-4">
+                        <div class="font-medium text-gray-900"><a href="#" class="bg-blue-200/50 text-blue-400 px-3 py-2 rounded-full">{{supplier.product_set.count}}</a></div>
+                    </td>
+                
+                    <td class="py-4 pl-4">
+                        <div class="flex space-x-1">
+                            <a  href="{% url 'main:edit_supplier' supplier.id %}" class="p-2 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </a>
+                            <a  href="#" onclick="confirmDelete(event, '{% url 'main:delete_supplier' supplier.id %}')" class="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+
+                {% endfor %}
+                {% else %}
+                <tr class="border-b hover:bg-gray-50 transition-colors">
+     
+                    <td class="py-4 pl-4 text-center" colspan="7">
+                        <div class="font-semibold text-gray-900">there is no suppliers</div>
+                    </td>
+               
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex items-center justify-between mt-6">
+  
+       
+
+        <div class="flex space-x-1">
+            {% if suppliers.has_previous %}
+            <a href="?page={{ suppliers.previous_page_number }}" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Previous</a>
+            {% else %}
+            <span class="px-3 py-1 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed">Previous</span>
+            {% endif %}
+
+            {% for page_num in suppliers.paginator.page_range %}
+            {% if suppliers.number == page_num %}
+                <span class="px-3 py-1 rounded-lg bg-blue-600 text-white">{{ page_num }}</span>
+            {% else %}
+                <a href="?page={{ page_num }}" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">{{ page_num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if suppliers.has_next %}
+            <a href="?page={{ suppliers.next_page_number }}" class="px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Next</a>
+            {% else %}
+            <span class="px-3 py-1 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed">Next</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+  </main>
+
+  <script>
+    function confirmDelete(event, url) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "you cannot return this item.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'yes,delete',
+            cancelButtonText: 'cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
+</script>
+{% endblock %}

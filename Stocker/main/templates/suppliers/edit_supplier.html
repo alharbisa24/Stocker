@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="flex h-screen">
+
+{% include 'sidebar.html' %}
+
+<div class="flex-1 bg-gray-100 p-6 overflow-auto">
+    
+ {% include 'navbar.html' %}
+
+    <main class="mx-auto px-4 py-7">
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Edit existing Supplier</h2>
+    
+        </div>
+
+        <div class="bg-white rounded-4xl p-6">
+            <form action="{% url 'main:edit_supplier' supplier.id %}" method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">name</label>
+                            <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="{{supplier.name}}">
+                        </div>
+           
+                        <div class="border p-2 border-gray-200">
+                            <h3>previous image:</h3>
+                            <br>
+                            <img src="{{supplier.logo.url}}" width="60">
+                        </div>
+                                          
+                        <div>
+                            <label for="logo" class="block text-sm font-medium text-gray-700 mb-1">logo</label>
+                            <input type="file" id="logo" name="logo" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept="image/*">
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">email</label>
+                            <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"value="{{supplier.email}}">
+                        </div>
+                           
+                                        
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">phone</label>
+                            <input type="text" id="phone" name="phone" required class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="{{supplier.phone}}">
+                        </div>
+           
+                        <div>
+                            <label for="website" class="block text-sm font-medium text-gray-700 mb-1">website url</label>
+                            <input type="url" id="website" name="website" required class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="{{supplier.website}}">
+                        </div>
+           
+                        
+                        
+
+                    
+                   
+{% if form.errors %}
+<div class="text-red-600 bg-red-50 p-4 rounded-md mb-4">
+    <ul>
+        {% for field in form %}
+                {% for error in field.errors %}
+                        <li> {{ error }}</li>
+                {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+                <div class="flex items-center justify-end space-x-4 pt-4 border-t">
+                    <a href="{% url 'main:suppliers_view' %}" class="px-6 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                        Update Supplier
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+</div>
+
+
+
+{% endblock %}

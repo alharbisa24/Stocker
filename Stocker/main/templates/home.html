@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="flex h-screen">
+
+{% include 'sidebar.html' %}
+
+<div class="flex-1 bg-gray-100 p-6 overflow-auto">
+    
+ {% include 'navbar.html' %}
+ <style>
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    
+
+    </style>
+    <main class=" mx-auto px-4 py-7">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <div class="lg:col-span-2 space-y-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                    <div class="bg-white rounded-4xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-gray-500 font-medium">Total Products</h3>
+                            <div class="p-2 bg-gray-100 rounded-xl">
+                                <span class="material-symbols-outlined text-gray-700">inventory_2</span>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800">{{data.total_products}}</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-4xl  p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-gray-500 font-medium">Categories</h3>
+                            <div class="p-2 bg-gray-100 rounded-xl">
+                                <span class="material-symbols-outlined text-gray-700">layers</span>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800">{{data.total_categories}}</p>
+                    
+                    </div>
+                    
+                    <div class="bg-white rounded-4xl  p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-gray-500 font-medium">Suppliers</h3>
+                            <div class="p-2 bg-gray-100 rounded-xl">
+                                <span class="material-symbols-outlined text-gray-700">group</span>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800">{{data.total_suppliers}}</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-4xl  p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-gray-500 font-medium">Users</h3>
+                            <div class="p-2 bg-gray-100 rounded-xl">
+                                <span class="material-symbols-outlined text-gray-700">groups</span>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800">{{data.total_users}}</p>
+                    </div>
+                </div>
+
+          
+                <h2 class="text-xl font-bold text-gray-900">Products</h2>
+
+                <div class="bg-white rounded-4xl p-6">
+                       
+                
+                    <div class="relative">
+                        <div id="productSlider" class="overflow-x-auto snap-x snap-mandatory flex scrollbar-hide pb-4">
+                          
+                            {% for product in products %}
+                            <div class="min-w-[280px] md:min-w-[320px] mr-6 group cursor-pointer snap-start flex-shrink-0">
+                                <div class="relative rounded-xl overflow-hidden mb-4">
+                                    <img src="{{product.image.url}}" alt="{{product.title}}" class="w-full h-40 object-contain group-hover:scale-105 transition-transform duration-300 rounded-3xl">
+                                </div>
+                                <span class="  {% if product.stock >= 10 %} bg-blue-600/20 text-blue-600  {% elif product.stock < 10 %} bg-orange-600/20 text-orange-600 {% elif product.stock == 0 %} bg-red-600/20 text-red-600 {% endif %} text-black text-xs px-2 py-1 rounded-full">{{product.stock}} remaining</span>
+
+                                <h3 class="font-semibold  {% if product.stock >= 10 %} text-gray-900 group-hover:text-blue-600 {% elif product.stock < 10 %} text-orange-900 group-hover:text-orange-600  {% elif product.stock == 0 %} text-red-900 group-hover:text-red-600  {% endif %} mb-1 transition-colors">Product title</h3>
+                                <div class="{% if product.stock >= 10 %} text-blue-600  {% elif product.stock < 10 %} text-orange-600 {% elif product.stock == 0 %} text-red-600 {% endif %}  font-medium mb-2">${{product.price}}</div>
+
+                                <div class="w-full bg-gray-200 rounded-full h-1">
+                                    <div class="{% if product.stock >= 10 %} bg-blue-600  {% elif product.stock < 10 %} bg-orange-600 {% elif product.stock == 0 %} bg-red-600 {% endif %} h-1 rounded-full" style="width: {{product.stock}}%;"></div>
+                                </div>
+                            </div>
+                          
+                            {% endfor %}
+                
+                        </div>
+                        
+                      
+                    </div>
+                </div>
+                
+          
+           
+            <h2 class="text-xl font-bold text-gray-900">Highest Suppliers</h2>
+                <div class="bg-white rounded-4xl p-6 ">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-sm text-gray-500 border-b">
+                                    <th class="pb-3 pl-4 font-medium">Name</th>
+                                    <th class="pb-3 pl-4 font-medium">Logo</th>
+                                    <th class="pb-3 pl-4 font-medium">Email</th>
+                                    <th class="pb-3 pl-4 font-medium">Phone</th>
+                                    <th class="pb-3 pl-4 font-medium">Website</th>
+                                    <th class="pb-3 pl-4 font-medium">#products</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if highest_suppliers %}
+                                {% for supplier in highest_suppliers %}
+                                <tr class="border-b last:border-b-0">
+                     
+                                    <td class="py-4 pl-4">
+                                        <div class="font-semibold text-gray-900">{{supplier.name}}</div>
+                                    </td>
+                                    <td class="py-4 pl-4">
+                                        <div class="font-semibold text-gray-900"><img src="{{supplier.logo.url}}" width="50"></div>
+                                    </td>
+                                    <td class="py-4 pl-4">
+                                        <div class="font-semibold text-gray-900">{{supplier.email}}</div>
+                                    </td>
+                                    
+                                    <td class="py-4 pl-4">
+                                        <div class="font-semibold text-gray-900">{{supplier.phone}}</div>
+                                    </td>
+                                    
+                                    <td class="py-4 pl-4">
+                                        <div class="font-semibold text-gray-900"><a href="{{supplier.website}}" style="color: blue;">{{supplier.website}}</a></div>
+                                    </td>
+                
+                                    <td class="py-4 pl-4">
+                                        <div class="font-medium text-gray-900"><a href="#" class="bg-blue-200/50 text-blue-400 px-3 py-2 rounded-full">{{supplier.product_set.count}}</a></div>
+                                    </td>
+                                
+                                   
+                                </tr>
+                
+                                {% endfor %}
+                                {% else %}
+                                <tr class="border-b hover:bg-gray-50 transition-colors">
+                     
+                                    <td class="py-4 pl-4 text-center" colspan="7">
+                                        <div class="font-semibold text-gray-900">there is no suppliers</div>
+                                    </td>
+                               
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        
+        </div>
+    </main>
+  </div>
+
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('productSlider');
+        
+        let isDragging = false;
+        let startX, scrollLeft;
+        
+        slider.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+        
+        slider.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+        
+        slider.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            slider.scrollLeft = scrollLeft - (x - startX);
+        });
+    });
+</script>
+{% endblock %}
